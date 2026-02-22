@@ -1,22 +1,22 @@
 import "package:flutter/material.dart";
+import "package:provider/provider.dart";
 import "../constants/my_colors.dart";
+import "../providers/cart_provider.dart";
 
 class FloatingCartButton extends StatelessWidget {
-  final int itemCount;
   final VoidCallback onTap;
-
-  /// Optional: pass a total price to show on the button
-  final double? totalPrice;
 
   const FloatingCartButton({
     super.key,
-    required this.itemCount,
     required this.onTap,
-    this.totalPrice,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cartProvider = context.watch<CartProvider>();
+    final itemCount = cartProvider.totalQuantity;
+    final totalPrice = cartProvider.totalPrice;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -40,7 +40,6 @@ class FloatingCartButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Cart icon with badge
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -77,9 +76,7 @@ class FloatingCartButton extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(width: 10),
-
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -93,20 +90,17 @@ class FloatingCartButton extends StatelessWidget {
                     letterSpacing: 0.1,
                   ),
                 ),
-                if (totalPrice != null)
-                  Text(
-                    "₹${totalPrice!.toStringAsFixed(0)}",
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.85),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
+                Text(
+                  "₹${totalPrice.toStringAsFixed(0)}",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.85),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
                   ),
+                ),
               ],
             ),
-
             const SizedBox(width: 8),
-
             Container(
               padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(

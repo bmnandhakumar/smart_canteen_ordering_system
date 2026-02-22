@@ -20,10 +20,10 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int _currentNavIndex = 0;
 
-  // Crowd state
   final CrowdService _crowdService = CrowdService();
   CrowdLevel _crowdLevel = CrowdLevel.low;
   int _totalPeople = 0;
@@ -41,8 +41,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       vsync: this,
       duration: const Duration(milliseconds: 700),
     );
-    _fadeAnim =
-        CurvedAnimation(parent: _animController, curve: Curves.easeOut);
+    _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _animController.forward();
 
     SystemChrome.setSystemUIOverlayStyle(
@@ -57,6 +56,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       const Duration(seconds: 60),
           (_) => _fetchCrowdData(),
     );
+
+    // Load cart after first frame (when context is available)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<CartProvider>().loadCart();
+      }
+    });
   }
 
   @override
@@ -97,18 +103,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           const ProfileScreen(),
         ],
       ),
-
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentNavIndex,
-        cartItemCount: cartCount,       // ← live from CartProvider
+        cartItemCount: cartCount,
         onTap: _onNavTap,
       ),
-
       floatingActionButton: cartCount > 0 && _currentNavIndex < 2
-          ? FloatingCartButton(
-        itemCount: cartCount,
-        onTap: () => _onNavTap(2),
-      )
+          ? FloatingCartButton(onTap: () => _onNavTap(2))
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -126,8 +127,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 onNavTap: _onNavTap,
               ),
             ),
-
-            // Crowd banner with live service data
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -138,7 +137,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
             ),
-
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(16, 28, 16, 12),
@@ -153,7 +151,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
             ),
-
             const SliverPadding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 120),
               sliver: CategoryGrid(),

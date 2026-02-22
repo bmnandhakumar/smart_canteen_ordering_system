@@ -18,17 +18,23 @@ class CartProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get hasError => _hasError;
 
+  /// Total number of units in the cart (badge count)
   int get totalQuantity => _cart?.totalQuantity ?? 0;
 
+  /// Total item count (unique lines)
   int get itemCount => _cart?.items.length ?? 0;
 
+  /// Whether the cart has any items
   bool get isEmpty => (_cart?.items.isEmpty) ?? true;
 
-  Map<String,ItemModel> get itemCache => _itemCache;
-
-
+  /// Quantity of a specific item currently in the cart
   int quantityOf(String itemId) => _cart?.quantityOf(itemId) ?? 0;
 
+  /// Read-only access to the item cache (itemId → ItemModel).
+  /// Used by CartScreen to resolve name/price/imageUrl for display.
+  Map<String, ItemModel> get itemCache => Map.unmodifiable(_itemCache);
+
+  /// Total price based on cached ItemModel prices
   double get totalPrice {
     if (_cart == null) return 0;
     double total = 0;
@@ -41,7 +47,8 @@ class CartProvider extends ChangeNotifier {
     return total;
   }
 
-
+  /// Call this from ItemsScreen after loading items so the provider
+  /// can compute prices without an extra API call.
   void cacheItems(List<ItemModel> items) {
     for (final item in items) {
       if (item.itemId != null) {
@@ -61,76 +68,43 @@ class CartProvider extends ChangeNotifier {
   }
 
 
-  Future<void> addItem(String itemId) async {
-    final newQty = quantityOf(itemId) + 1;
-    _optimisticUpdate(itemId, newQty);
+  Future<void> addItem(String userId,String itemId) async {
+    final newQty = 1;
 
-    final result = await _service.addItem(itemId: itemId, quantity: newQty);
+    final result = await _service.addItem(userId: userId,itemId: itemId, quantity: newQty);
     if (result != null) {
       _cart = result;
       notifyListeners();
     }
   }
 
-
-  Future<void> decrementItem(String itemId) async {
-    final current = quantityOf(itemId);
-    if (current <= 0) return;
-
-    if (current == 1) {
-      await removeItem(itemId);
-      return;
-    }
-
-    final newQty = current - 1;
-    _optimisticUpdate(itemId, newQty);
-
-    final result = await _service.addItem(itemId: itemId, quantity: newQty);
+  Future<void> decrementItem(String userId,String itemId) async {
+    final result = await _service.removeItem(userId: userId,itemId: itemId);
     if (result != null) {
       _cart = result;
       notifyListeners();
     }
   }
 
-  Future<void> removeItem(String itemId) async {
-    // Optimistic: remove locally
-    if (_cart != null) {
-      _cart = _cart!.copyWith(
-        items: _cart!.items.where((e) => e.itemId != itemId).toList(),
-      );
-      notifyListeners();
-    }
-
-    final result = await _service.removeItem(itemId: itemId);
+  Future<void> removeItem(String userId, String itemId) async {
+    final result = await _service.removeItem(userId: userId ,itemId: itemId);
     if (result != null) {
       _cart = result;
       notifyListeners();
     }
   }
 
-
+  Future<void> deleteAllItems(String userId)async {
+    final result = await _service.deleteAllItems(userId:userId);
+    if (result != null) {
+      _cart = result;
+      notifyListeners();
+    }
+  }
 
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
   }
 
-  void _optimisticUpdate(String itemId, int newQty) {
-    if (_cart == null) return;
-
-    final existingIndex =
-    _cart!.items.indexWhere((e) => e.itemId == itemId);
-
-    List<CartItemModel> updatedItems = List.from(_cart!.items);
-
-    if (existingIndex >= 0) {
-      updatedItems[existingIndex] =
-          updatedItems[existingIndex].copyWith(quantity: newQty);
-    } else {
-      updatedItems.add(CartItemModel(itemId: itemId, quantity: newQty));
-    }
-
-    _cart = _cart!.copyWith(items: updatedItems);
-    notifyListeners();
-  }
 }

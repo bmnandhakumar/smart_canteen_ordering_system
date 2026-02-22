@@ -7,7 +7,9 @@ class CartService {
 
   Future<CartModel?> getCart() async {
     try {
-      final response = await MyClient.dio.get(MyRoutes.getCart);
+      final response = await MyClient.dio.post(MyRoutes.getCart,data: {
+        "user_id": "bffv6d3dd09v"
+      });
       final body = response.data as Map<String, dynamic>;
 
       if (body["success"] == true && body["data"] != null) {
@@ -22,11 +24,12 @@ class CartService {
   }
 
 
-  Future<CartModel?> addItem({ required String itemId, required int quantity }) async {
+  Future<CartModel?> addItem({ required String userId, required String itemId, required int quantity }) async {
     try {
       final response = await MyClient.dio.post(
         MyRoutes.addCartItem,
         data: {
+          "user_id": userId,
           "item_id": itemId,
           "quantity": quantity,
         },
@@ -44,14 +47,36 @@ class CartService {
     }
   }
 
-  Future<CartModel?> removeItem({required String itemId}) async {
+  Future<CartModel?> removeItem({required userId, required String itemId}) async {
     try {
-      final response = await MyClient.dio.delete(
+      final response = await MyClient.dio.post(
         MyRoutes.removeCartItem,
-        data: {"item_id": itemId},
+        data: {"user_id":userId,"item_id": itemId},
       );
+
+
       final body = response.data as Map<String, dynamic>;
 
+      if (body["success"] == true && body["data"] != null) {
+        return CartModel.fromJson(body["data"] as Map<String, dynamic>);
+      }
+      return null;
+    } on DioException catch (_) {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+
+  Future<CartModel?> deleteAllItems({required String userId}) async {
+    try {
+      final response = await MyClient.dio.post(
+        MyRoutes.deleteAllCartItems,
+          data: {"user_id":userId},
+      );
+
+      final body = response.data as Map<String, dynamic>;
       if (body["success"] == true && body["data"] != null) {
         return CartModel.fromJson(body["data"] as Map<String, dynamic>);
       }

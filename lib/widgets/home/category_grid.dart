@@ -86,7 +86,6 @@ class CategoryCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        log("navigate to /items/${category.categoryId}");
         context.push("/items/${category.categoryId}",extra: {
           "categoryName": category.name
         });
@@ -125,7 +124,6 @@ class CategoryCard extends StatelessWidget {
               ),
             ),
 
-            // ── Text Area ───────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
               child: Column(

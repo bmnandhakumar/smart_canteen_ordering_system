@@ -1,5 +1,3 @@
-// ── Cart Item ─────────────────────────────────────────────────────────────────
-
 class CartItemModel {
   final String itemId;
   final int quantity;
@@ -28,8 +26,6 @@ class CartItemModel {
     );
   }
 }
-
-// ── Cart ──────────────────────────────────────────────────────────────────────
 
 class CartModel {
   final String cartId;

@@ -1,10 +1,10 @@
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
+import "package:smart_canteen_ordering_system/providers/user_provider.dart";
 import "../constants/my_colors.dart";
-import "../models/cart_model.dart";
-import "../models/item_model.dart";
 import "../providers/cart_provider.dart";
-import "../widgets/primary_button.dart";
+import "../widgets/cart/bill_summary.dart";
+import "../widgets/cart/cart_item_card.dart";
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -22,7 +22,7 @@ class CartScreen extends StatelessWidget {
             _buildHeader(context, cartProvider),
             Expanded(child: _buildBody(context, cartProvider)),
             if (!cartProvider.isLoading && !cartProvider.isEmpty)
-              _BillSummary(cartProvider: cartProvider),
+              BillSummary(cartProvider: cartProvider),
           ],
         ),
       ),
@@ -113,15 +113,15 @@ class CartScreen extends StatelessWidget {
         // Join with ItemModel from provider cache for name/price/image
         final itemModel = cartProvider.itemCache[cartItem.itemId];
 
-        return _CartItemCard(
+        return CartItemCard(
           cartItem: cartItem,
           itemModel: itemModel,
           onIncrement: () =>
-              context.read<CartProvider>().addItem(cartItem.itemId),
+              context.read<CartProvider>().addItem(context.read<UserProvider>().user!.userId!,cartItem.itemId),
           onDecrement: () =>
-              context.read<CartProvider>().decrementItem(cartItem.itemId),
+              context.read<CartProvider>().decrementItem(context.read<UserProvider>().user!.userId!,cartItem.itemId),
           onRemove: () =>
-              context.read<CartProvider>().removeItem(cartItem.itemId),
+              context.read<CartProvider>().removeItem(context.read<UserProvider>().user!.userId!,cartItem.itemId),
         );
       },
     );
@@ -155,6 +155,7 @@ class CartScreen extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
+              cartProvider.deleteAllItems(context.read<UserProvider>().user!.userId!);
             },
             child: const Text(
               "Clear",
@@ -168,285 +169,6 @@ class CartScreen extends StatelessWidget {
   }
 }
 
-
-class _CartItemCard extends StatelessWidget {
-  final CartItemModel cartItem;
-  final ItemModel? itemModel; // null if not yet in provider cache
-  final VoidCallback onIncrement;
-  final VoidCallback onDecrement;
-  final VoidCallback onRemove;
-
-  const _CartItemCard({
-    required this.cartItem,
-    required this.itemModel,
-    required this.onIncrement,
-    required this.onDecrement,
-    required this.onRemove,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final name = itemModel?.name ?? "Item";
-    final price = itemModel?.price ?? 0.0;
-    final imageUrl = itemModel?.imageUrl;
-    final lineTotal = price * cartItem.quantity;
-
-    return Dismissible(
-      key: Key(cartItem.itemId),
-      direction: DismissDirection.endToStart,
-      onDismissed: (_) => onRemove(),
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFEBEE),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Icon(
-          Icons.delete_rounded,
-          color: Color(0xFFE53935),
-          size: 24,
-        ),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // ── Image ─────────────────────────────────────────────
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                width: 56,
-                height: 56,
-                child: imageUrl != null && imageUrl.isNotEmpty
-                    ? Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const _ImagePlaceholder(),
-                )
-                    : const _ImagePlaceholder(),
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14.5,
-                      color: Color(0xFF1A1A1A),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    "₹${price.toStringAsFixed(0)} each",
-                    style: const TextStyle(
-                      fontSize: 12.5,
-                      color: Color(0xFF888888),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "₹${lineTotal.toStringAsFixed(0)}",
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: MyColors.primaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Vertical qty stepper ──────────────────────────────
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _QtyBtn(icon: Icons.add, onTap: onIncrement, isAdd: true),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Text(
-                    "${cartItem.quantity}",
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1A1A),
-                    ),
-                  ),
-                ),
-                _QtyBtn(icon: Icons.remove, onTap: onDecrement),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
-
-class _ImagePlaceholder extends StatelessWidget {
-  const _ImagePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: MyColors.primaryColor.withOpacity(0.08),
-      child: Icon(
-        Icons.fastfood_rounded,
-        color: MyColors.primaryColor.withOpacity(0.35),
-        size: 28,
-      ),
-    );
-  }
-}
-
-class _QtyBtn extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool isAdd;
-
-  const _QtyBtn({
-    required this.icon,
-    required this.onTap,
-    this.isAdd = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          color: isAdd
-              ? MyColors.primaryColor
-              : MyColors.primaryColor.withOpacity(0.10),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          icon,
-          size: 16,
-          color: isAdd ? Colors.white : MyColors.primaryColor,
-        ),
-      ),
-    );
-  }
-}
-
-
-class _BillSummary extends StatelessWidget {
-  final CartProvider cartProvider;
-  static const double _platformFee = 2;
-
-  const _BillSummary({required this.cartProvider});
-
-  @override
-  Widget build(BuildContext context) {
-    final subtotal = cartProvider.totalPrice;
-    final total = subtotal + _platformFee;
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
-        ],
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        children: [
-          _BillRow(
-            label: "Subtotal",
-            value: "₹${subtotal.toStringAsFixed(0)}",
-          ),
-          const SizedBox(height: 6),
-          const _BillRow(label: "Platform fee", value: "₹2"),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: Divider(color: Color(0xFFF0F0F0)),
-          ),
-          _BillRow(
-            label: "Total",
-            value: "₹${total.toStringAsFixed(0)}",
-            isBold: true,
-          ),
-          const SizedBox(height: 16),
-          PrimaryButton(
-            label: "Place Order · ₹${total.toStringAsFixed(0)}",
-            onPressed: () {
-              // TODO: Navigate to checkout / order confirmation screen
-            },
-            trailingIcon: Icons.check_circle_outline_rounded,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
-class _BillRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool isBold;
-
-  const _BillRow({
-    required this.label,
-    required this.value,
-    this.isBold = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: isBold ? 15 : 13.5,
-            fontWeight: isBold ? FontWeight.w800 : FontWeight.w500,
-            color: isBold ? const Color(0xFF1A1A1A) : const Color(0xFF666666),
-          ),
-        ),
-        const Spacer(),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: isBold ? 15 : 13.5,
-            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
-            color:
-            isBold ? MyColors.primaryColor : const Color(0xFF1A1A1A),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class _EmptyCartState extends StatelessWidget {
   const _EmptyCartState();
