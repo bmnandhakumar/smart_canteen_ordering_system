@@ -13,17 +13,11 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
 
-    if (user == null) {
-      return const Scaffold(
-        body: AppLoader(),
-      );
-    }
-
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F4),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 100),
+          padding: const EdgeInsets.only(bottom: 16),
           child: Column(
             children: [
               ProfileHeader(user: user),

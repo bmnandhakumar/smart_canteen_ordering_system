@@ -17,5 +17,6 @@ class MyRoutes {
   static const addCartItem ="/user/add_cart_item";
   static const removeCartItem ="/user/remove_cart_item";
   static const deleteAllCartItems ="/user/delete_all_cart_items";
+  static const getItemsByIds ="/user/get_items_by_ids";
 
 }

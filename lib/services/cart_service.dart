@@ -2,13 +2,14 @@ import "package:dio/dio.dart";
 import "package:smart_canteen_ordering_system/constants/my_routes.dart";
 import "package:smart_canteen_ordering_system/services/my_client.dart";
 import "../models/cart_model.dart";
+import "../models/item_model.dart";
 
 class CartService {
 
-  Future<CartModel?> getCart() async {
+  Future<CartModel?> getCart({ required String userId }) async {
     try {
       final response = await MyClient.dio.post(MyRoutes.getCart,data: {
-        "user_id": "bffv6d3dd09v"
+        "user_id": userId
       });
       final body = response.data as Map<String, dynamic>;
 
@@ -21,6 +22,25 @@ class CartService {
     } catch (_) {
       return null;
     }
+  }
+
+  Future<List<ItemModel>> getItemsByIds(List<String> itemIds) async {
+    final response = await MyClient.dio.post(
+      MyRoutes.getItemsByIds,
+      data: {
+        "item_ids": itemIds,
+      },
+    );
+
+    final body = response.data;
+
+    if (body["success"] != true || body["data"] == null) {
+      return [];
+    }
+
+    final list = body["data"] as List;
+
+    return list.map((e) => ItemModel.fromJson(e)).toList();
   }
 
 

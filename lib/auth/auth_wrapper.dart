@@ -3,6 +3,7 @@ import "package:firebase_auth/firebase_auth.dart";
 import "package:provider/provider.dart";
 import "package:smart_canteen_ordering_system/services/auth_service.dart";
 import "package:smart_canteen_ordering_system/widgets/app_loader.dart";
+import "package:smart_canteen_ordering_system/widgets/exit_confirmation.dart";
 import "../providers/user_provider.dart";
 import "../screens/home_screen.dart";
 import "login_screen.dart";
@@ -69,6 +70,6 @@ class _LoadUserAndNavigateState
       );
     }
 
-    return const HomeScreen();
+    return const ExitConfirmationWrapper(child: HomeScreen());
   }
 }

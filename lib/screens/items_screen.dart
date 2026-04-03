@@ -45,9 +45,6 @@ class _ItemsScreenState extends State<ItemsScreen> {
       );
 
       if (!mounted) return;
-
-      context.read<CartProvider>().cacheItems(result);
-
       setState(() {
         _items = result;
         _isLoading = false;

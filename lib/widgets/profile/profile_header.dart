@@ -4,9 +4,9 @@ import "../../../utils/user_formatter.dart";
 import "../../../constants/my_colors.dart";
 
 class ProfileHeader extends StatelessWidget {
-  final UserModel user;
+  final UserModel? user;
 
-  const ProfileHeader({super.key, required this.user});
+  const ProfileHeader({super.key, this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class ProfileHeader extends StatelessWidget {
             _buildAvatar(),
             const SizedBox(height: 14),
             Text(
-              user.name ?? "",
+              user?.name ?? "Guest",
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 20,
@@ -36,7 +36,7 @@ class ProfileHeader extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              user.email ?? "",
+              user?.email ?? "guest@gmail.com",
               style: TextStyle(
                 color: Colors.white.withOpacity(0.80),
                 fontSize: 13.5,
@@ -76,8 +76,8 @@ class ProfileHeader extends StatelessWidget {
       ),
       child: Text(
         UserFormatter.formatAcademicInfo(
-          yearOfJoining: user.yearOfJoining ?? 2022,
-          departmentName: user.departmentName ?? "IT",
+          yearOfJoining: user?.yearOfJoining ?? 2022,
+          departmentName: user?.departmentName ?? "IT",
         ),
         style: const TextStyle(
           color: Colors.white,

@@ -2,6 +2,7 @@ import "dart:async";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:provider/provider.dart";
+import "package:smart_canteen_ordering_system/providers/user_provider.dart";
 import "../providers/cart_provider.dart";
 import "../services/crowd_service.dart";
 import "../widgets/home/bottom_nav_bar.dart";
@@ -60,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen>
     // Load cart after first frame (when context is available)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<CartProvider>().loadCart();
+        context.read<CartProvider>().loadCart(context.read<UserProvider>().user!.userId!);
       }
     });
   }
@@ -108,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen>
         cartItemCount: cartCount,
         onTap: _onNavTap,
       ),
-      floatingActionButton: cartCount > 0 && _currentNavIndex < 2
+      floatingActionButton: _currentNavIndex < 2
           ? FloatingCartButton(onTap: () => _onNavTap(2))
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -152,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
             const SliverPadding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 120),
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
               sliver: CategoryGrid(),
             ),
           ],

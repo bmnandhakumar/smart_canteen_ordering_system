@@ -6,7 +6,7 @@ import "../../models/item_model.dart";
 
 class CartItemCard extends StatelessWidget {
   final CartItemModel cartItem;
-  final ItemModel? itemModel; // null if not yet in provider cache
+  final ItemModel? itemModel;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
   final VoidCallback onRemove;
@@ -26,24 +26,7 @@ class CartItemCard extends StatelessWidget {
     final imageUrl = itemModel?.imageUrl;
     final lineTotal = price * cartItem.quantity;
 
-    return Dismissible(
-      key: Key(cartItem.itemId),
-      direction: DismissDirection.endToStart,
-      onDismissed: (_) => onRemove(),
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFEBEE),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Icon(
-          Icons.delete_rounded,
-          color: Color(0xFFE53935),
-          size: 24,
-        ),
-      ),
-      child: Container(
+    return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -58,7 +41,6 @@ class CartItemCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // ── Image ─────────────────────────────────────────────
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: SizedBox(
@@ -110,7 +92,6 @@ class CartItemCard extends StatelessWidget {
               ),
             ),
 
-            // ── Vertical qty stepper ──────────────────────────────
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -131,7 +112,6 @@ class CartItemCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

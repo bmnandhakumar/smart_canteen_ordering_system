@@ -20,13 +20,6 @@ class ProfileMenuSection extends StatelessWidget {
           ProfileMenuCard(
             items: [
               MenuItemData(
-                icon: Icons.person_outline_rounded,
-                label: "Edit Profile",
-                onTap: () {
-                  context.push("/edit-profile");
-                },
-              ),
-              MenuItemData(
                 icon: Icons.lock_outline_rounded,
                 label: "Change Password",
                 onTap: () {

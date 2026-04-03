@@ -161,11 +161,11 @@ class CategoryCard extends StatelessWidget {
   IconData _fallbackIcon(String name) {
     final lower = name.toLowerCase();
 
-    if (lower.contains("beverage")) return Icons.coffee_rounded;
+    if (lower.contains("beverage")) return Icons.local_cafe_rounded;
     if (lower.contains("snack")) return Icons.bakery_dining_rounded;
-    if (lower.contains("meal")) return Icons.rice_bowl_rounded;
+    if (lower.contains("meal")) return Icons.restaurant_rounded;
     if (lower.contains("tiffin")) return Icons.breakfast_dining_rounded;
-    if (lower.contains("dessert")) return Icons.icecream_rounded;
+    if (lower.contains("dessert")) return Icons.cake_rounded;
     if (lower.contains("stationery")) return Icons.edit_note_rounded;
 
     return Icons.fastfood_rounded;
