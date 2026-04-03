@@ -6,6 +6,7 @@ import "package:smart_canteen_ordering_system/widgets/app_loader.dart";
 import "package:smart_canteen_ordering_system/widgets/exit_confirmation.dart";
 import "../providers/user_provider.dart";
 import "../screens/home_screen.dart";
+import "../screens/admin/admin_dashboard_screen.dart";
 import "login_screen.dart";
 
 class AuthWrapper extends StatelessWidget {
@@ -68,6 +69,13 @@ class _LoadUserAndNavigateState
       return const Scaffold(
         body: AppLoader(),
       );
+    }
+
+    // Check user role for admin routing
+    final user = context.watch<UserProvider>().user;
+
+    if (user?.role == "admin") {
+      return const ExitConfirmationWrapper(child: AdminDashboardScreen());
     }
 
     return const ExitConfirmationWrapper(child: HomeScreen());

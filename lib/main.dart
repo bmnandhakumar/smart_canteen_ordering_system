@@ -4,6 +4,8 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:smart_canteen_ordering_system/providers/cart_provider.dart";
 import "/providers/user_provider.dart";
+import "/providers/order_provider.dart";
+import "/providers/admin_provider.dart";
 import "/utils/my_logger.dart";
 import "app_router.dart";
 
@@ -26,6 +28,12 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<CartProvider>(
           create: (_) => CartProvider(),
+        ),
+        ChangeNotifierProvider<OrderProvider>(
+          create: (_) => OrderProvider(),
+        ),
+        ChangeNotifierProvider<AdminProvider>(
+          create: (_) => AdminProvider(),
         ),
       ],
       child: MaterialApp.router(

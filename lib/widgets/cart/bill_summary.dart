@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:go_router/go_router.dart";
 
 import "../../constants/my_colors.dart";
 import "../../providers/cart_provider.dart";
@@ -49,7 +50,7 @@ class BillSummary extends StatelessWidget {
           PrimaryButton(
             label: "Place Order · ₹${total.toStringAsFixed(0)}",
             onPressed: () {
-              // TODO: Navigate to checkout / order confirmation screen
+              context.push("/payment");
             },
             trailingIcon: Icons.check_circle_outline_rounded,
           ),
@@ -58,7 +59,6 @@ class BillSummary extends StatelessWidget {
     );
   }
 }
-
 
 class _BillRow extends StatelessWidget {
   final String label;
@@ -81,7 +81,7 @@ class _BillRow extends StatelessWidget {
             fontSize: isBold ? 15 : 13.5,
             fontWeight: isBold ? FontWeight.w800 : FontWeight.w500,
             color: isBold ? const Color(0xFF1A1A1A) : const Color(0xFF666666),
-          ),
+        ),
         ),
         const Spacer(),
         Text(
@@ -91,8 +91,8 @@ class _BillRow extends StatelessWidget {
             fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
             color:
             isBold ? MyColors.primaryColor : const Color(0xFF1A1A1A),
-          ),
         ),
+      ),
       ],
     );
   }

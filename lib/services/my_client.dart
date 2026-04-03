@@ -5,7 +5,7 @@ class MyClient {
 
   static final Dio dio = Dio(
     BaseOptions(
-      baseUrl: "http://10.239.192.168:3000",
+      baseUrl: "http://10.128.98.168:3000",  
       connectTimeout: const Duration(seconds: 5),
       receiveTimeout: const Duration(seconds: 5),
       headers: {

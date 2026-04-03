@@ -4,6 +4,7 @@ import "package:flutter/services.dart";
 import "package:provider/provider.dart";
 import "package:smart_canteen_ordering_system/providers/user_provider.dart";
 import "../providers/cart_provider.dart";
+import "../providers/order_provider.dart";
 import "../services/crowd_service.dart";
 import "../widgets/home/bottom_nav_bar.dart";
 import "../widgets/home/crowd_monitor_banner.dart";
@@ -24,6 +25,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   int _currentNavIndex = 0;
+  bool _ordersLoaded = false;
 
   final CrowdService _crowdService = CrowdService();
   CrowdLevel _crowdLevel = CrowdLevel.low;
@@ -87,7 +89,22 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-  void _onNavTap(int index) => setState(() => _currentNavIndex = index);
+  void _onNavTap(int index) {
+    setState(() => _currentNavIndex = index);
+
+    // Load orders when switching to Orders tab
+    if (index == 1 && !_ordersLoaded) {
+      _loadOrders();
+    }
+  }
+
+  Future<void> _loadOrders() async {
+    final userId = context.read<UserProvider>().user!.userId!;
+    await context.read<OrderProvider>().loadOrders(userId);
+    if (mounted) {
+      setState(() => _ordersLoaded = true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

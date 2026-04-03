@@ -4,7 +4,7 @@ import "/utils/my_logger.dart";
 class CrowdService {
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: "http://10.239.192.168:5000",
+      baseUrl: "http://10.128.98.168:5000",
       connectTimeout: const Duration(seconds: 5),
       receiveTimeout: const Duration(seconds: 5),
     ),

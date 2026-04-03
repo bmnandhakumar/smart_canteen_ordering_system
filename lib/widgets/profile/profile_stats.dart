@@ -1,7 +1,14 @@
 import "package:flutter/material.dart";
 
 class ProfileStats extends StatelessWidget {
-  const ProfileStats({super.key});
+  final int orderCount;
+  final double totalSpent;
+
+  const ProfileStats({
+    super.key,
+    required this.orderCount,
+    required this.totalSpent,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -13,15 +20,30 @@ class ProfileStats extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            _StatItem(label: "Orders", value: "24", icon: "🧾"),
+            _StatItem(
+              label: "Orders",
+              value: orderCount.toString(),
+              icon: "🧾",
+            ),
             _Divider(),
-            _StatItem(label: "Spent", value: "₹1,840", icon: "💳"),
+            _StatItem(
+              label: "Spent",
+              value: "₹${_formatAmount(totalSpent)}",
+              icon: "💳",
+            ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatAmount(double amount) {
+    if (amount >= 1000) {
+      return "${(amount / 1000).toStringAsFixed(1)}k";
+    }
+    return amount.toStringAsFixed(0);
   }
 }
 

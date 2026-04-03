@@ -53,7 +53,7 @@ class LoginCard extends StatelessWidget {
             children: [
               // Card heading
               const Text(
-                "Sign In  ",
+                "Sign In",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
