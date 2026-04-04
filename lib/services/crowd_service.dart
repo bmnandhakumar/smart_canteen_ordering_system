@@ -1,26 +1,30 @@
-import "package:dio/dio.dart";
-import "/utils/my_logger.dart";
+import "package:smart_canteen_ordering_system/constants/my_routes.dart";
+import "my_client.dart";
 
 class CrowdService {
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: "http://10.128.98.168:5000",
-      connectTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 5),
-    ),
-  );
+  CrowdService._();
 
-  Future<Map<String, dynamic>> getCrowdData() async {
-    try {
-      final response = await _dio.get("/crowd");
-      log(response.data["people"].toString());
-      return response.data;
-    } catch (e) {
-      return {
-        "people": 0,
-        "level": "LOW",
-      };
+  static final CrowdService _instance = CrowdService._();
+  static CrowdService get instance => _instance;
+
+  /// Get current crowd level
+  Future<Map<String, dynamic>> getCrowdLevel() async {
+    final response = await MyClient.dio.get(MyRoutes.getCrowdLevel);
+
+    if (response.data["success"] != true || response.data["data"] == null) {
+      throw Exception(response.data["message"] ?? "Failed to fetch crowd data");
     }
+
+    return response.data["data"] as Map<String, dynamic>;
+  }
+
+  /// Update crowd level (for admin use)
+  Future<bool> updateCrowdLevel(Map<String, dynamic> data) async {
+    final response = await MyClient.dio.post(
+      MyRoutes.updateCrowdLevel,
+      data: data,
+    );
+
+    return response.data["success"] == true;
   }
 }
-

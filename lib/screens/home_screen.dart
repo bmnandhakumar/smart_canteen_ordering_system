@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen>
   int _currentNavIndex = 0;
   bool _ordersLoaded = false;
 
-  final CrowdService _crowdService = CrowdService();
+  final CrowdService _crowdService = CrowdService.instance;
   CrowdLevel _crowdLevel = CrowdLevel.low;
   int _totalPeople = 0;
   bool _crowdLoading = true;
@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     _fetchCrowdData();
     _pollingTimer = Timer.periodic(
-      const Duration(seconds: 60),
+      const Duration(seconds: 11),
           (_) => _fetchCrowdData(),
     );
 
@@ -79,14 +79,23 @@ class _HomeScreenState extends State<HomeScreen>
     if (!mounted) return;
     setState(() => _crowdLoading = true);
 
-    final data = await _crowdService.getCrowdData();
+    try {
+      final data = await _crowdService.getCrowdLevel();
 
-    if (!mounted) return;
-    setState(() {
-      _totalPeople = (data["people"] as num?)?.toInt() ?? 0;
-      _crowdLevel = crowdLevelFromString((data["level"] as String?) ?? "LOW");
-      _crowdLoading = false;
-    });
+      if (!mounted) return;
+      setState(() {
+        _totalPeople = (data["people"] as num?)?.toInt() ?? 0;
+        _crowdLevel = crowdLevelFromString((data["level"] as String?) ?? "LOW");
+        _crowdLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _totalPeople = 0;
+        _crowdLevel = CrowdLevel.low;
+        _crowdLoading = false;
+      });
+    }
   }
 
   void _onNavTap(int index) {

@@ -36,4 +36,13 @@ class MyRoutes {
   static const getOrders = "/user/get_orders";
   static const getOrderById = "/user/get_order_by_id";
 
+  // Crowd
+  static const getCrowdLevel = "/crowd/get";
+  static const updateCrowdLevel = "/crowd/update";
+
+  static const cloudUrl = "https://smart-canteen-ordering-system-backend.onrender.com";
+  static const localUrl = "http://10.128.98.168:3000";
+
+  static const isTesting =false;
+
 }

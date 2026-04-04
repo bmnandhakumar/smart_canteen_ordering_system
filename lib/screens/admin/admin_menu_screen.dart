@@ -4,6 +4,8 @@ import "package:smart_canteen_ordering_system/constants/my_colors.dart";
 import "package:smart_canteen_ordering_system/models/category_model.dart";
 import "package:smart_canteen_ordering_system/models/item_model.dart";
 import "package:smart_canteen_ordering_system/providers/admin_provider.dart";
+import "package:smart_canteen_ordering_system/screens/admin/category_form_screen.dart";
+import "package:smart_canteen_ordering_system/screens/admin/item_form_screen.dart";
 
 class AdminMenuScreen extends StatefulWidget {
   const AdminMenuScreen({super.key});
@@ -110,21 +112,359 @@ class _AdminMenuScreenState extends State<AdminMenuScreen>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: const [
-                  _CategoriesTab(),
-                  _ItemsTab(),
+                children: [
+                  _CategoriesTab(
+                    onEdit: (category) => _showCategoryForm(category: category),
+                    onDeactivate: (category) => _confirmDeactivateCategory(category),
+                    onReactivate: (category) => _confirmReactivateCategory(category),
+                  ),
+                  _ItemsTab(
+                    onEdit: (item) => _showItemForm(item: item),
+                    onDeactivate: (item) => _confirmDeactivateItem(item),
+                    onReactivate: (item) => _confirmReactivateItem(item),
+                  ),
                 ],
               ),
             ),
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          if (_tabController.index == 0) {
+            _showCategoryForm();
+          } else {
+            _showItemForm();
+          }
+        },
+        backgroundColor: MyColors.primaryColor,
+        icon: const Icon(Icons.add_rounded),
+        label: Text(_tabController.index == 0 ? "Add Category" : "Add Item"),
+      ),
     );
+  }
+
+  Future<void> _showCategoryForm({CategoryModel? category}) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CategoryFormScreen(category: category),
+    );
+    if (mounted) {
+      context.read<AdminProvider>().loadCategories();
+    }
+  }
+
+  Future<void> _showItemForm({ItemModel? item}) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ItemFormScreen(item: item),
+    );
+    if (mounted) {
+      context.read<AdminProvider>().loadItems();
+    }
+  }
+
+  Future<void> _confirmDeactivateCategory(CategoryModel category) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          "Deactivate Category",
+          style: TextStyle(
+            color: MyColors.primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text("Are you sure you want to deactivate \"${category.name}\"?\n\nIt will be hidden from users but won't be permanently deleted."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFF9A825),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text("Deactivate"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final adminProvider = context.read<AdminProvider>();
+      final success = await adminProvider.deleteCategory(category.categoryId!);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  success ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  success ? "Category deactivated" : "Failed to deactivate",
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            backgroundColor: success ? MyColors.primaryColor : const Color(0xFFE53935),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmDeactivateItem(ItemModel item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          "Deactivate Item",
+          style: TextStyle(
+            color: MyColors.primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text("Are you sure you want to deactivate \"${item.name}\"?\n\nIt will be hidden from users but won't be permanently deleted."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFF9A825),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text("Deactivate"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final adminProvider = context.read<AdminProvider>();
+      final success = await adminProvider.deleteItem(item.itemId!);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  success ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  success ? "Item deactivated" : "Failed to deactivate",
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            backgroundColor: success ? MyColors.primaryColor : const Color(0xFFE53935),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmReactivateCategory(CategoryModel category) async {
+    if ((category.isActive ?? false)) return; // Already active
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          "Reactivate Category",
+          style: TextStyle(
+            color: MyColors.primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text("Reactivate \"${category.name}\"? It will be visible to users again."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: MyColors.primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text("Reactivate"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final adminProvider = context.read<AdminProvider>();
+      final success = await adminProvider.updateCategory(
+        category.categoryId!,
+        category.name ?? "",
+        category.description ?? "",
+        isActive: true,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  success ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  success ? "Category reactivated" : "Failed to reactivate",
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            backgroundColor: success ? MyColors.primaryColor : const Color(0xFFE53935),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmReactivateItem(ItemModel item) async {
+    if ((item.isAvailable ?? false)) return; // Already available
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          "Reactivate Item",
+          style: TextStyle(
+            color: MyColors.primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text("Reactivate \"${item.name}\"? It will be visible to users again."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: MyColors.primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text("Reactivate"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final adminProvider = context.read<AdminProvider>();
+      final success = await adminProvider.updateItem(
+        item.itemId!,
+        {
+          "name": item.name ?? "",
+          "category_id": item.categoryId ?? "",
+          "description": item.description ?? "",
+          "price": item.price ?? 0,
+          "image_url": item.imageUrl ?? "",
+          "stock_quantity": item.stockQuantity ?? 0,
+          "is_available": true,
+        },
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  success ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  success ? "Item reactivated" : "Failed to reactivate",
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            backgroundColor: success ? MyColors.primaryColor : const Color(0xFFE53935),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    }
   }
 }
 
-class _CategoriesTab extends StatelessWidget {
-  const _CategoriesTab();
+class _CategoriesTab extends StatefulWidget {
+  final Function(CategoryModel) onEdit;
+  final Function(CategoryModel) onDeactivate;
+  final Function(CategoryModel) onReactivate;
+
+  const _CategoriesTab({
+    required this.onEdit,
+    required this.onDeactivate,
+    required this.onReactivate,
+  });
+
+  @override
+  State<_CategoriesTab> createState() => _CategoriesTabState();
+}
+
+class _CategoriesTabState extends State<_CategoriesTab> {
+  String _selectedFilter = "All";
+  final List<String> _filters = ["All", "Active", "Inactive"];
+
+  List<CategoryModel> _getFilteredCategories(AdminProvider adminProvider) {
+    final categories = adminProvider.allCategories;
+    switch (_selectedFilter) {
+      case "All":
+        return categories;
+      case "Active":
+        return categories.where((c) => c.isActive ?? false).toList();
+      case "Inactive":
+        return categories.where((c) => !(c.isActive ?? false)).toList();
+      default:
+        return categories;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +501,7 @@ class _CategoriesTab extends StatelessWidget {
       );
     }
 
-    final categories = adminProvider.allCategories;
+    final categories = _getFilteredCategories(adminProvider);
 
     if (categories.isEmpty) {
       return Center(
@@ -184,19 +524,79 @@ class _CategoriesTab extends StatelessWidget {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-      itemCount: categories.length,
-      itemBuilder: (context, index) {
-        final category = categories[index];
-        return _CategoryCard(category: category);
-      },
+    return Column(
+      children: [
+        // Filter chips
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: Row(
+            children: List.generate(_filters.length, (index) {
+              final isSelected = _selectedFilter == _filters[index];
+              return Padding(
+                padding: EdgeInsets.only(right: index < _filters.length - 1 ? 8 : 0),
+                child: _FilterChip(
+                  label: _filters[index],
+                  isSelected: isSelected,
+                  onTap: () => setState(() => _selectedFilter = _filters[index]),
+                ),
+              );
+            }),
+          ),
+        ),
+        // Categories list
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+            itemCount: categories.length,
+            itemBuilder: (context, index) {
+              final category = categories[index];
+              return _CategoryCard(
+                category: category,
+                onEdit: widget.onEdit,
+                onDeactivate: widget.onDeactivate,
+                onReactivate: widget.onReactivate,
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _ItemsTab extends StatelessWidget {
-  const _ItemsTab();
+class _ItemsTab extends StatefulWidget {
+  final Function(ItemModel) onEdit;
+  final Function(ItemModel) onDeactivate;
+  final Function(ItemModel) onReactivate;
+
+  const _ItemsTab({
+    required this.onEdit,
+    required this.onDeactivate,
+    required this.onReactivate,
+  });
+
+  @override
+  State<_ItemsTab> createState() => _ItemsTabState();
+}
+
+class _ItemsTabState extends State<_ItemsTab> {
+  String _selectedFilter = "All";
+  final List<String> _filters = ["All", "Available", "Unavailable"];
+
+  List<ItemModel> _getFilteredItems(AdminProvider adminProvider) {
+    final items = adminProvider.allItems;
+    switch (_selectedFilter) {
+      case "All":
+        return items;
+      case "Available":
+        return items.where((i) => i.isAvailable ?? false).toList();
+      case "Unavailable":
+        return items.where((i) => !(i.isAvailable ?? false)).toList();
+      default:
+        return items;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +633,7 @@ class _ItemsTab extends StatelessWidget {
       );
     }
 
-    final items = adminProvider.allItems;
+    final items = _getFilteredItems(adminProvider);
 
     if (items.isEmpty) {
       return Center(
@@ -256,29 +656,69 @@ class _ItemsTab extends StatelessWidget {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return _ItemCard(item: item);
-      },
+    return Column(
+      children: [
+        // Filter chips
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: Row(
+            children: List.generate(_filters.length, (index) {
+              final isSelected = _selectedFilter == _filters[index];
+              return Padding(
+                padding: EdgeInsets.only(right: index < _filters.length - 1 ? 8 : 0),
+                child: _FilterChip(
+                  label: _filters[index],
+                  isSelected: isSelected,
+                  onTap: () => setState(() => _selectedFilter = _filters[index]),
+                ),
+              );
+            }),
+          ),
+        ),
+        // Items list
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return _ItemCard(
+                item: item,
+                onEdit: widget.onEdit,
+                onDeactivate: widget.onDeactivate,
+                onReactivate: widget.onReactivate,
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
 class _CategoryCard extends StatelessWidget {
   final CategoryModel category;
+  final Function(CategoryModel) onEdit;
+  final Function(CategoryModel) onDeactivate;
+  final Function(CategoryModel) onReactivate;
 
-  const _CategoryCard({required this.category});
+  const _CategoryCard({
+    required this.category,
+    required this.onEdit,
+    required this.onDeactivate,
+    required this.onReactivate,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final isActive = category.isActive ?? false;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isActive ? Colors.white : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -293,12 +733,14 @@ class _CategoryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: MyColors.primaryColor.withOpacity(0.10),
+              color: isActive
+                  ? MyColors.primaryColor.withOpacity(0.10)
+                  : Colors.grey.shade400.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               Icons.category_rounded,
-              color: MyColors.primaryColor,
+              color: isActive ? MyColors.primaryColor : Colors.grey.shade500,
               size: 24,
             ),
           ),
@@ -309,10 +751,10 @@ class _CategoryCard extends StatelessWidget {
               children: [
                 Text(
                   category.name ?? "Unnamed Category",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
-                    color: Color(0xFF1A1A1A),
+                    color: isActive ? const Color(0xFF1A1A1A) : Colors.grey.shade600,
                   ),
                 ),
                 if (category.description != null && category.description!.isNotEmpty) ...[
@@ -330,16 +772,47 @@ class _CategoryCard extends StatelessWidget {
               ],
             ),
           ),
+          // Action buttons
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit_rounded, size: 20),
+                onPressed: () => onEdit(category),
+                tooltip: "Edit",
+                color: const Color(0xFF1976D2),
+                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(
+                  minWidth: 36,
+                  minHeight: 36,
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  isActive ? Icons.block_rounded : Icons.check_circle_rounded,
+                  size: 20,
+                ),
+                onPressed: () => isActive ? onDeactivate(category) : onReactivate(category),
+                tooltip: isActive ? "Deactivate" : "Reactivate",
+                color: isActive ? const Color(0xFFF9A825) : const Color(0xFF00A056),
+                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(
+                  minWidth: 36,
+                  minHeight: 36,
+                ),
+              ),
+            ],
+          ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: (category.isActive ?? false)
+              color: isActive
                   ? const Color(0xFF00A056).withOpacity(0.1)
-                  : const Color(0xFFE53935).withOpacity(0.1),
+                  : const Color(0xFF888888).withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              (category.isActive ?? false) ? "Active" : "Inactive",
+              isActive ? "Active" : "Inactive",
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -357,18 +830,27 @@ class _CategoryCard extends StatelessWidget {
 
 class _ItemCard extends StatelessWidget {
   final ItemModel item;
+  final Function(ItemModel) onEdit;
+  final Function(ItemModel) onDeactivate;
+  final Function(ItemModel) onReactivate;
 
-  const _ItemCard({required this.item});
+  const _ItemCard({
+    required this.item,
+    required this.onEdit,
+    required this.onDeactivate,
+    required this.onReactivate,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isLowStock = (item.stockQuantity ?? 0) < 10;
+    final isAvailable = item.isAvailable ?? false;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isAvailable ? Colors.white : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -385,27 +867,39 @@ class _ItemCard extends StatelessWidget {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: MyColors.primaryColor.withOpacity(0.10),
+              color: isAvailable
+                  ? MyColors.primaryColor.withOpacity(0.10)
+                  : Colors.grey.shade400.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: item.imageUrl != null && item.imageUrl!.isNotEmpty
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      item.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.fastfood_rounded,
-                          color: MyColors.primaryColor.withOpacity(0.60),
-                          size: 30,
-                        );
-                      },
+                    child: ColorFiltered(
+                      colorFilter: ColorFilter.mode(
+                        isAvailable ? Colors.transparent : Colors.grey,
+                        BlendMode.srcIn,
+                      ),
+                      child: Image.network(
+                        item.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.fastfood_rounded,
+                            color: isAvailable
+                                ? MyColors.primaryColor.withOpacity(0.60)
+                                : Colors.grey.shade500,
+                            size: 30,
+                          );
+                        },
+                      ),
                     ),
                   )
                 : Icon(
                     Icons.fastfood_rounded,
-                    color: MyColors.primaryColor.withOpacity(0.60),
+                    color: isAvailable
+                        ? MyColors.primaryColor.withOpacity(0.60)
+                        : Colors.grey.shade500,
                     size: 30,
                   ),
           ),
@@ -416,36 +910,39 @@ class _ItemCard extends StatelessWidget {
               children: [
                 Text(
                   item.name ?? "Unnamed Item",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
-                    color: Color(0xFF1A1A1A),
+                    color: isAvailable ? const Color(0xFF1A1A1A) : Colors.grey.shade600,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
-                Row(
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
                   children: [
                     Text(
                       "₹${item.price?.toStringAsFixed(0) ?? "0"}",
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: MyColors.primaryColor,
                       ),
                     ),
-                    const SizedBox(width: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: isLowStock
                             ? const Color(0xFFE53935).withOpacity(0.1)
                             : const Color(0xFF00A056).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         "Stock: ${item.stockQuantity ?? 0}",
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: isLowStock
                               ? const Color(0xFFE53935)
@@ -453,19 +950,18 @@ class _ItemCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: (item.isAvailable ?? false)
                             ? const Color(0xFF00A056).withOpacity(0.1)
                             : const Color(0xFF888888).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         (item.isAvailable ?? false) ? "Available" : "Unavailable",
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: (item.isAvailable ?? false)
                               ? const Color(0xFF00A056)
@@ -478,7 +974,77 @@ class _ItemCard extends StatelessWidget {
               ],
             ),
           ),
+          // Action buttons
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit_rounded, size: 20),
+                onPressed: () => onEdit(item),
+                tooltip: "Edit",
+                color: const Color(0xFF1976D2),
+                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(
+                  minWidth: 36,
+                  minHeight: 36,
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  isAvailable ? Icons.block_rounded : Icons.check_circle_rounded,
+                  size: 20,
+                ),
+                onPressed: () => isAvailable ? onDeactivate(item) : onReactivate(item),
+                tooltip: isAvailable ? "Deactivate" : "Reactivate",
+                color: isAvailable ? const Color(0xFFF9A825) : const Color(0xFF00A056),
+                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(
+                  minWidth: 36,
+                  minHeight: 36,
+                ),
+              ),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _FilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected ? MyColors.primaryColor : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? MyColors.primaryColor
+                : const Color(0xFFE0E0E0),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : const Color(0xFF888888),
+          ),
+        ),
       ),
     );
   }

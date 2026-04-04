@@ -86,14 +86,18 @@ class AdminService {
   }
 
   /// Update category
-  Future<void> updateCategory(String categoryId, String name, String description) async {
+  Future<void> updateCategory(String categoryId, String name, String description, {bool? isActive}) async {
+    final Map<String, dynamic> data = {
+      "category_id": categoryId,
+      "name": name,
+      "description": description,
+    };
+    if (isActive != null) {
+      data["is_active"] = isActive;
+    }
     final response = await MyClient.dio.post(
       MyRoutes.updateCategory,
-      data: {
-        "category_id": categoryId,
-        "name": name,
-        "description": description,
-      },
+      data: data,
     );
 
     if (response.data["success"] != true) {

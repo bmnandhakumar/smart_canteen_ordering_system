@@ -139,9 +139,9 @@ class AdminProvider extends ChangeNotifier {
   }
 
   /// Update category
-  Future<bool> updateCategory(String categoryId, String name, String description) async {
+  Future<bool> updateCategory(String categoryId, String name, String description, {bool? isActive}) async {
     try {
-      await _service.updateCategory(categoryId, name, description);
+      await _service.updateCategory(categoryId, name, description, isActive: isActive);
       await loadCategories();
       return true;
     } catch (e) {
